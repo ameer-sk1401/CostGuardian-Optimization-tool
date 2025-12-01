@@ -13,7 +13,13 @@ on:
     paths:
       - 'frontend/**'
       - '.github/workflows/deploy-dashboard.yml'
-  
+  workflow_run:
+    
+    workflows: ["validate-data.yml"] 
+    
+    types:
+      - completed
+
   workflow_dispatch:
 
 env:
