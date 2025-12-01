@@ -42,3 +42,5 @@ logs/
 # Cache
 .cache/
 .eslintcache
+# Local Netlify folder
+.netlify

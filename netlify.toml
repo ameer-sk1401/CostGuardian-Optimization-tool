@@ -1,0 +1,37 @@
+# ========================================
+# Netlify Configuration
+# ========================================
+# This file tells Netlify where your code is
+# and how to build it
+# ========================================
+
+[build]
+  # Base directory - where your package.json is
+  base = "frontend"
+  
+  # Build command
+  command = "npm run build"
+  
+  # Publish directory - where the built files are
+  publish = "frontend/.next"
+
+[build.environment]
+  # Node version
+  NODE_VERSION = "18"
+
+# ========================================
+# Redirects and Headers (Optional)
+# ========================================
+
+# Redirect all requests to index.html for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# ========================================
+# Functions (if using Netlify Functions)
+# ========================================
+
+[functions]
+  directory = "frontend/netlify/functions"
