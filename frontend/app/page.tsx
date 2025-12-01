@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Header from "@/components/header";
-import UserMenu from "@/components/user-menu";
 import MetricsOverview from "@/components/metrics-overview";
 import ResourceTable from "@/components/resource-table";
 import Charts from "@/components/charts";
@@ -14,172 +13,149 @@ export default function Home() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
+    async function fetchData() {
       try {
-        // Load config
+        console.log("🔍 Starting data fetch...");
+
+        // Step 1: Load config.json (local file)
+        console.log("📥 Loading config.json...");
         const configResponse = await fetch("/config.json");
+
+        if (!configResponse.ok) {
+          throw new Error(
+            `Failed to load config.json: ${configResponse.status}`
+          );
+        }
+
         const config = await configResponse.json();
+        console.log("✅ Config loaded:", config);
 
-        // Load data from GitHub
+        // Step 2: Load data.json from GitHub
         const dataUrl = `https://raw.githubusercontent.com/${config.user_info.github_repo}/main/public/data.json`;
-        const response = await fetch(dataUrl);
-        const jsonData = await response.json();
+        console.log("📥 Loading data from:", dataUrl);
 
-        // Combine config and data
+        const dataResponse = await fetch(dataUrl, {
+          cache: "no-store", // Always get fresh data
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        if (!dataResponse.ok) {
+          throw new Error(`Failed to load data.json: ${dataResponse.status}`);
+        }
+
+        const jsonData = await dataResponse.json();
+        console.log("✅ Data loaded:", jsonData);
+
+        // Step 3: Combine config and data
         const fullData = {
           ...jsonData,
           config: config.user_info,
         };
 
+        console.log("✅ Full data combined:", fullData);
         setData(fullData);
-        setLoading(false);
+        setError(null);
       } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to fetch data");
+        console.error("❌ Error fetching data:", err);
+        setError(err.message);
+
+        // Use empty data instead of mock data
+        setData({
+          metadata: {
+            last_updated: new Date().toISOString(),
+            version: "1.0.0",
+          },
+          overview: {
+            total_resources: 0,
+            resources_deleted: 0,
+            monthly_savings: 0,
+            annual_savings: 0,
+            active_resources: 0,
+            idle_resources: 0,
+          },
+          breakdown: {},
+          activity: [],
+          current_resources: [],
+          deleted_resources: [],
+          config: {
+            github_username: "your-username",
+            github_repo: "username/repo",
+            aws_account_id: "941431936794",
+            aws_region: "us-east-1",
+          },
+        });
+      } finally {
         setLoading(false);
       }
-    };
+    }
 
     fetchData();
-    const interval = setInterval(fetchData, 5 * 60 * 1000); // 5 minutes
+
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchData, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0a192f] via-[#112240] to-[#0a192f] flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#0a192f] to-[#112240] flex items-center justify-center">
         <div className="text-center">
-          <div className="text-[#64ffda] text-4xl font-mono mb-4">
-            loading...
-          </div>
-          <div className="inline-block animate-spin">
-            <div className="w-8 h-8 border-2 border-[#64ffda] border-t-transparent rounded-full"></div>
-          </div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#64ffda] mb-4"></div>
+          <p className="text-[#64ffda] font-mono">Loading CostGuardian...</p>
         </div>
       </div>
     );
   }
 
-  const mockData = data || {
-    metadata: {
-      last_updated: new Date().toISOString(),
-      version: "1.0",
-    },
-    overview: {
-      total_resources: 25,
-      resources_deleted: 3,
-      idle_resources: 2,
-      active_resources: 20,
-      monthly_savings: 39.0,
-      annual_savings: 468.0,
-    },
-    breakdown: {
-      "NAT Gateway": {
-        count: 1,
-        deleted: 1,
-        monthly_savings: 32.4,
-      },
-      "Elastic IP": {
-        count: 1,
-        deleted: 1,
-        monthly_savings: 3.6,
-      },
-      "EBS Volume": {
-        count: 1,
-        deleted: 1,
-        monthly_savings: 3.0,
-      },
-    },
-    activity: [
-      { date: "2025-11-21", deleted: 0, warned: 1, active: 20 },
-      { date: "2025-11-22", deleted: 1, warned: 0, active: 20 },
-      { date: "2025-11-23", deleted: 0, warned: 1, active: 20 },
-      { date: "2025-11-24", deleted: 1, warned: 0, active: 20 },
-      { date: "2025-11-25", deleted: 1, warned: 0, active: 20 },
-    ],
-    weekly_savings: [
-      { week: "Week 1", savings: 15.2 },
-      { week: "Week 2", savings: 22.5 },
-      { week: "Week 3", savings: 31.0 },
-      { week: "Week 4", savings: 39.0 },
-    ],
-    current_resources: [
-      {
-        resource_id: "i-0abc123def456",
-        resource_type: "EC2 Instance",
-        status: "Active",
-        monthly_cost: 8.4,
-        last_checked: "2025-11-25T08:00:00Z",
-      },
-      {
-        resource_id: "vol-0xyz789def012",
-        resource_type: "EBS Volume",
-        status: "Active",
-        monthly_cost: 5.2,
-        last_checked: "2025-11-25T08:00:00Z",
-      },
-    ],
-    deleted_resources: [
-      {
-        resource_id: "nat-0abc123def456",
-        resource_type: "NAT Gateway",
-        status: "Deleted",
-        monthly_savings: 32.4,
-        deleted_at: "2025-11-24T10:30:00Z",
-        backup_location: "s3://backups/nat-123",
-      },
-      {
-        resource_id: "eipalloc-xyz789def012",
-        resource_type: "Elastic IP",
-        status: "Released",
-        monthly_savings: 3.6,
-        deleted_at: "2025-11-23T15:45:00Z",
-        backup_location: "s3://backups/eip-456",
-      },
-      {
-        resource_id: "vol-123abc456def789",
-        resource_type: "EBS Volume",
-        status: "Deleted",
-        monthly_savings: 3.0,
-        deleted_at: "2025-11-22T09:15:00Z",
-        backup_location: "s3://backups/vol-789",
-      },
-    ],
-  };
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#0a192f] to-[#112240] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-[#112240] border border-red-500 rounded-lg p-6">
+          <h2 className="text-red-500 font-mono font-bold text-xl mb-2">
+            ⚠️ Error Loading Data
+          </h2>
+          <p className="text-[#8892b0] font-mono mb-4">{error}</p>
+          <div className="space-y-2 text-sm text-[#8892b0]">
+            <p className="font-mono">Possible issues:</p>
+            <ul className="list-disc list-inside space-y-1 pl-4">
+              <li>config.json is missing from frontend/public/</li>
+              <li>data.json is not available on GitHub</li>
+              <li>GitHub repository URL is incorrect</li>
+              <li>Network connection issue</li>
+            </ul>
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 w-full bg-[#64ffda] text-[#0a192f] font-mono font-bold py-2 px-4 rounded hover:bg-[#00ff88] transition"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a192f] via-[#112240] to-[#0a192f] relative">
-      <Header userMenuOpen={userMenuOpen} setUserMenuOpen={setUserMenuOpen} />
-      {userMenuOpen && (
-        <UserMenu onClose={() => setUserMenuOpen(false)} data={mockData} />
-      )}
-
-      <main className="container mx-auto px-4 py-8 lg:py-12 max-w-7xl">
-        {error && (
-          <div className="mb-8 p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400">
-            {error}
-          </div>
-        )}
-
-        <MetricsOverview data={mockData} />
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 my-12">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a192f] to-[#112240]">
+      <Header data={data} />
+      <main className="container mx-auto px-4 py-8">
+        <MetricsOverview data={data} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
           <div className="lg:col-span-2">
-            <Charts data={mockData} />
+            <ResourceTable data={data} />
           </div>
-          <div>
-            <MonthlyClock />
+          <div className="space-y-6">
+            <MonthlyClock data={data} />
+            <Charts data={data} />
           </div>
         </div>
-
-        <ResourceTable data={mockData} />
-        <HistorySection />
+        <HistorySection data={data} />
       </main>
-
-      <Footer data={mockData} />
+      <Footer />
     </div>
   );
 }
