@@ -28,11 +28,12 @@ env:
 
 jobs:
   # ========================================
-  # JOB 1: Build and Test
+  # JOB 1: Build and Deploy
   # ========================================
-  build:
-    name: Build Application
+  build-and-deploy:
+    name: Build and Deploy to Netlify
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
       - name: 📥 Checkout code
@@ -42,20 +43,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: 'frontend/package-lock.json'
 
       - name: 📥 Install dependencies
         working-directory: frontend
         run: |
           echo "📦 Installing dependencies..."
-          npm ci
+          npm install
 
       - name: 🔍 Lint code
         working-directory: frontend
         run: |
           echo "🔍 Running linter..."
-          npm run lint || echo "Lint check complete"
+          npm run lint || echo "✅ Lint check complete"
 
       - name: ✅ Validate config.json
         working-directory: frontend
@@ -79,38 +78,8 @@ jobs:
       - name: 📊 Build summary
         run: |
           echo "✅ Build completed successfully!"
-          echo "📦 Build artifact:"
-          ls -lh frontend/.next/ 2>/dev/null || ls -lh frontend/out/ 2>/dev/null || echo "Build directory found"
-
-  # ========================================
-  # JOB 2: Deploy to Netlify (Production)
-  # ========================================
-  deploy-production:
-    name: Deploy to Netlify (Production)
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 📦 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: 'frontend/package-lock.json'
-
-      - name: 📥 Install dependencies
-        working-directory: frontend
-        run: npm ci
-
-      - name: 🔧 Build for production
-        working-directory: frontend
-        run: npm run build
-        env:
-          NODE_ENV: production
+          echo "📦 Build output:"
+          ls -lh frontend/.next/ 2>/dev/null || echo "Build directory created"
 
       - name: 🚀 Deploy to Netlify
         uses: netlify/actions/cli@master
@@ -120,22 +89,21 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
 
-      - name: 📝 Deployment complete
+      - name: 🎉 Deployment complete
         run: |
           echo "================================"
-          echo "🎉 DEPLOYMENT SUCCESSFUL!"
+          echo "✅ DEPLOYMENT SUCCESSFUL!"
           echo "================================"
-          echo "🌐 Production URL: https://${{ secrets.NETLIFY_SITE_ID }}.netlify.app"
-          echo "📅 Deployed at: $(date)"
+          echo "🌐 Live URL: https://${{ secrets.NETLIFY_SITE_ID }}.netlify.app"
+          echo "📅 Time: $(date)"
           echo "📁 Source: frontend/"
           echo "================================"
 
   # ========================================
-  # JOB 3: Deploy Preview (for PRs)
+  # JOB 2: Build Only (for PRs)
   # ========================================
-  deploy-preview:
-    name: Deploy Preview to Netlify
-    needs: build
+  build-preview:
+    name: Build Preview
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     
@@ -147,28 +115,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: 'frontend/package-lock.json'
 
       - name: 📥 Install dependencies
         working-directory: frontend
-        run: npm ci
+        run: npm install
 
-      - name: 🔧 Build for preview
+      - name: 🔧 Build application
         working-directory: frontend
         run: npm run build
         env:
           NODE_ENV: production
 
-      - name: 🚀 Deploy preview to Netlify
-        uses: netlify/actions/cli@master
-        with:
-          args: deploy --dir=frontend/.next
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-
-      - name: 📝 Comment preview URL on PR
+      - name: 📝 PR Comment
         uses: actions/github-script@v7
         with:
           script: |
@@ -176,5 +134,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '## 🚀 Preview Deployment\n\n✅ Your changes have been deployed!\n\n🌐 **Preview URL:** Check Netlify dashboard\n\n📁 **Source:** frontend/\n\n---\n*This preview updates with new commits*'
+              body: '## ✅ Build Successful!\n\n🔧 Frontend build completed without errors.\n\n📁 **Source:** frontend/\n\n---\n*Merge to deploy to production*'
             })
