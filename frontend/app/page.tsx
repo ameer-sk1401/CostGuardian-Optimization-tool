@@ -33,7 +33,7 @@ export default function Home() {
         console.log("✅ Config loaded:", config);
 
         // Load data.json from GitHub
-        const dataUrl = `https://raw.githubusercontent.com/${config.user_info.github_repo}/main/public/data.json`;
+        const dataUrl = `https://raw.githubusercontent.com/${config.user_info.github_repo}/main/frontend/public/data.json`;
         console.log("📥 Loading data from:", dataUrl);
 
         const dataResponse = await fetch(dataUrl, {
