@@ -1,0 +1,213 @@
+{
+  "widgets": [
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 0,
+      "width": 6,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            "CostGuardian",
+            "MonthlySavings",
+            { "stat": "Maximum", "label": "Monthly Savings" }
+          ]
+        ],
+        "view": "singleValue",
+        "region": "us-east-1",
+        "title": "💰 Monthly Savings ($)",
+        "period": 300,
+        "setPeriodToTimeRange": false
+      }
+    },
+    {
+      "type": "metric",
+      "x": 6,
+      "y": 0,
+      "width": 6,
+      "height": 6,
+      "properties": {
+        "metrics": [["CostGuardian", "ResourcesDeleted", { "stat": "Sum" }]],
+        "view": "singleValue",
+        "region": "us-east-1",
+        "title": "🗑️ Resources Deleted",
+        "period": 300
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 0,
+      "width": 6,
+      "height": 6,
+      "properties": {
+        "metrics": [["CostGuardian", "ResourcesWarned", { "stat": "Maximum" }]],
+        "view": "singleValue",
+        "region": "us-east-1",
+        "title": "⚠️ Idle Resources",
+        "period": 300
+      }
+    },
+    {
+      "type": "metric",
+      "x": 18,
+      "y": 0,
+      "width": 6,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            "CostGuardian",
+            "MonthlySavings",
+            {
+              "stat": "Maximum",
+              "expression": "m1*12",
+              "id": "e1",
+              "label": "Annual Savings"
+            }
+          ]
+        ],
+        "view": "singleValue",
+        "region": "us-east-1",
+        "title": "💵 Annual Savings ($)",
+        "period": 300
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 6,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            "CostGuardian",
+            "ResourcesDeleted",
+            { "stat": "Sum", "label": "Deleted", "color": "#d62728" }
+          ],
+          [
+            ".",
+            "ResourcesWarned",
+            { "stat": "Sum", "label": "Warned", "color": "#ff7f0e" }
+          ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "📈 Activity Timeline (Last 7 Days)",
+        "period": 3600,
+        "yAxis": {
+          "left": {
+            "min": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 6,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            "CostGuardian",
+            "NATGatewayDeleted",
+            { "label": "NAT Gateway ($32.40)" }
+          ],
+          [".", "ElasticIPReleased", { "label": "Elastic IP ($3.60)" }],
+          [".", "EBSVolumeDeleted", { "label": "EBS Volume ($3.00)" }],
+          [".", "EC2Deleted", { "label": "EC2 Instance" }],
+          [".", "RDSDeleted", { "label": "RDS Database" }],
+          [".", "LoadBalancerDeleted", { "label": "Load Balancer" }],
+          [".", "VPCDeleted", { "label": "VPC Cleanup" }]
+        ],
+        "view": "pie",
+        "region": "us-east-1",
+        "title": "📊 Savings Breakdown by Resource Type",
+        "period": 2592000,
+        "stat": "Sum",
+        "setPeriodToTimeRange": true
+      }
+    },
+    {
+      "type": "log",
+      "x": 0,
+      "y": 12,
+      "width": 24,
+      "height": 6,
+      "properties": {
+        "query": "SOURCE '/aws/lambda/CostGuard_ec2-backup'\n| fields @timestamp, @message\n| filter @message like /DELETED/ or @message like /💰/ or @message like /Released/ or @message like /Terminated/\n| sort @timestamp desc\n| limit 20",
+        "region": "us-east-1",
+        "title": "📜 Recent Cost Optimization Events",
+        "stacked": false
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 18,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            "AWS/Lambda",
+            "Invocations",
+            { "stat": "Sum", "label": "Executions" }
+          ],
+          [".", "Errors", { "stat": "Sum", "label": "Errors" }],
+          [".", "Throttles", { "stat": "Sum", "label": "Throttles" }]
+        ],
+        "view": "timeSeries",
+        "region": "us-east-1",
+        "title": "⚙️ Lambda Performance",
+        "period": 3600,
+        "yAxis": {
+          "left": {
+            "min": 0
+          }
+        },
+        "annotations": {
+          "horizontal": [
+            {
+              "label": "Error Threshold",
+              "value": 1,
+              "fill": "above",
+              "color": "#d62728"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 18,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            "AWS/Lambda",
+            "Duration",
+            { "stat": "Average", "label": "Avg Duration" }
+          ],
+          ["...", { "stat": "Maximum", "label": "Max Duration" }]
+        ],
+        "view": "timeSeries",
+        "region": "us-east-1",
+        "title": "⏱️ Lambda Execution Time (ms)",
+        "period": 3600,
+        "yAxis": {
+          "left": {
+            "min": 0
+          }
+        }
+      }
+    }
+  ]
+}

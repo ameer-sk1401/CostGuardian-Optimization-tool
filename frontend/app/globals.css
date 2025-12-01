@@ -1,0 +1,242 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Terminal Dark Theme Colors - overriding default shadcn/ui for custom theme */
+  --bg-primary: #0a192f; /* Deep navy blue */
+  --bg-secondary: #112240; /* Lighter navy */
+  --bg-card: #1d2d50; /* Card background */
+  --accent-primary: #64ffda; /* Bright cyan */
+  --accent-secondary: #00d9ff; /* Teal */
+  --text-primary: #ffffff; /* White */
+  --text-secondary: #8892b0; /* Light cyan/gray */
+  --success: #00ff88; /* Bright green */
+  --warning: #ffd700; /* Bright yellow */
+  --error: #ff5555; /* Bright red */
+  --border-color: #233554; /* Subtle border */
+  --glow: rgba(100, 255, 218, 0.4); /* Cyan glow */
+
+  /* shadcn/ui Design Tokens - overridden with terminal theme */
+  --background: #0a192f;
+  --foreground: #ffffff;
+  --card: #1d2d50;
+  --card-foreground: #ffffff;
+  --popover: #112240;
+  --popover-foreground: #ffffff;
+  --primary: #64ffda;
+  --primary-foreground: #0a192f;
+  --secondary: #1d2d50;
+  --secondary-foreground: #ffffff;
+  --muted: #112240;
+  --muted-foreground: #8892b0;
+  --accent: #64ffda;
+  --accent-foreground: #0a192f;
+  --destructive: #ff5555;
+  --destructive-foreground: #ffffff;
+  --border: #233554;
+  --input: #112240;
+  --ring: #64ffda;
+  --chart-1: #64ffda;
+  --chart-2: #00d9ff;
+  --chart-3: #00ff88;
+  --chart-4: #ffd700;
+  --chart-5: #ff5555;
+  --radius: 0.5rem;
+  --sidebar: #0a192f;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #64ffda;
+  --sidebar-primary-foreground: #0a192f;
+  --sidebar-accent: #1d2d50;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #233554;
+  --sidebar-ring: #64ffda;
+}
+
+.dark {
+  --background: #0a192f;
+  --foreground: #ffffff;
+  --card: #1d2d50;
+  --card-foreground: #ffffff;
+  --popover: #112240;
+  --popover-foreground: #ffffff;
+  --primary: #64ffda;
+  --primary-foreground: #0a192f;
+  --secondary: #1d2d50;
+  --secondary-foreground: #ffffff;
+  --muted: #112240;
+  --muted-foreground: #8892b0;
+  --accent: #64ffda;
+  --accent-foreground: #0a192f;
+  --destructive: #ff5555;
+  --destructive-foreground: #ffffff;
+  --border: #233554;
+  --input: #112240;
+  --ring: #64ffda;
+  --chart-1: #64ffda;
+  --chart-2: #00d9ff;
+  --chart-3: #00ff88;
+  --chart-4: #ffd700;
+  --chart-5: #ff5555;
+  --sidebar: #0a192f;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #64ffda;
+  --sidebar-primary-foreground: #0a192f;
+  --sidebar-accent: #1d2d50;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #233554;
+  --sidebar-ring: #64ffda;
+}
+
+@theme inline {
+  --font-sans: "Geist", "Geist Fallback";
+  --font-mono: "Geist Mono", "Geist Mono Fallback";
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Terminal Effects */
+  .terminal-glow {
+    @apply transition-all duration-300;
+    box-shadow: 0 0 10px rgba(100, 255, 218, 0.2);
+  }
+
+  .terminal-glow:hover {
+    box-shadow: 0 0 20px rgba(100, 255, 218, 0.4);
+    border-color: rgb(100, 255, 218);
+    @apply translate-y-[-2px];
+  }
+
+  /* Converted arbitrary values from @apply to regular CSS since @apply doesn't support arbitrary values */
+  .terminal-border {
+    border: 1px solid #233554;
+  }
+
+  .terminal-border-glow {
+    border: 1px solid #233554;
+    @apply transition-all duration-300;
+  }
+
+  .terminal-border-glow:hover {
+    border-color: #64ffda;
+    box-shadow: 0 0 15px rgba(100, 255, 218, 0.3);
+  }
+
+  .terminal-card {
+    background-color: #1d2d50;
+    border-radius: 0.5rem;
+    border: 1px solid #233554;
+    padding: 1.5rem;
+  }
+
+  .glow-text {
+    text-shadow: 0 0 10px rgba(100, 255, 218, 0.5);
+  }
+
+  .glow-cyan {
+    color: rgb(100, 255, 218);
+    text-shadow: 0 0 10px rgba(100, 255, 218, 0.5);
+  }
+
+  /* Scanline effect (subtle) */
+  .scanlines::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(0deg, transparent 0%, rgba(100, 255, 218, 0.02) 50%, transparent 100%);
+    pointer-events: none;
+    animation: scan 8s linear infinite;
+  }
+
+  @keyframes scan {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(10px);
+    }
+  }
+
+  /* Counter Animation */
+  @keyframes counter-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .counter-animate {
+    animation: counter-up 0.6s ease-out;
+  }
+}
+
+/* Recharts customization */
+.recharts-surface {
+  filter: drop-shadow(0 0 10px rgba(100, 255, 218, 0.1));
+}
+
+.recharts-tooltip {
+  background: rgb(17, 34, 64) !important;
+  border: 1px solid rgb(100, 255, 218) !important;
+  border-radius: 0.5rem !important;
+}
+
+.recharts-tooltip-label {
+  color: rgb(100, 255, 218) !important;
+}
+
+.recharts-tooltip-item {
+  color: rgb(255, 255, 255) !important;
+}
