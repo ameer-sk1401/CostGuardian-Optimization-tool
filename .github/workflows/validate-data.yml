@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'public/data.json'
+      - 'frontend/public/data.json'
   
   workflow_dispatch:
 
