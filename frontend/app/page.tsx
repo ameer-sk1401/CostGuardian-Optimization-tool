@@ -19,7 +19,7 @@ export default function Home() {
       try {
         console.log("🔍 Starting data fetch...");
 
-        // Step 1: Load config.json (local file)
+        // Load config.json
         console.log("📥 Loading config.json...");
         const configResponse = await fetch("/config.json");
 
@@ -32,12 +32,12 @@ export default function Home() {
         const config = await configResponse.json();
         console.log("✅ Config loaded:", config);
 
-        // Step 2: Load data.json from GitHub
-        const dataUrl = `https://raw.githubusercontent.com/${config.user_info.github_repo}/main/frontend/public/data.json`;
+        // Load data.json from GitHub
+        const dataUrl = `https://raw.githubusercontent.com/${config.user_info.github_repo}/main/public/data.json`;
         console.log("📥 Loading data from:", dataUrl);
 
         const dataResponse = await fetch(dataUrl, {
-          cache: "no-store", // Always get fresh data
+          cache: "no-store",
           headers: {
             Accept: "application/json",
           },
@@ -50,7 +50,7 @@ export default function Home() {
         const jsonData = await dataResponse.json();
         console.log("✅ Data loaded:", jsonData);
 
-        // Step 3: Combine config and data
+        // Combine config and data
         const fullData = {
           ...jsonData,
           config: config.user_info,
@@ -63,7 +63,7 @@ export default function Home() {
         console.error("❌ Error fetching data:", err);
         setError(err.message);
 
-        // Use empty data instead of mock data
+        // Use empty data structure
         setData({
           metadata: {
             last_updated: new Date().toISOString(),
@@ -142,19 +142,29 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a192f] to-[#112240]">
       <Header data={data} />
-      <main className="container mx-auto px-4 py-8">
+
+      <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Metrics Overview */}
         <MetricsOverview data={data} />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+
+        {/* Main Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Resource Table (2/3 width) */}
           <div className="lg:col-span-2">
             <ResourceTable data={data} />
           </div>
+
+          {/* Right Column - Clock & Charts (1/3 width) */}
           <div className="space-y-6">
             <MonthlyClock data={data} />
             <Charts data={data} />
           </div>
         </div>
+
+        {/* History Section */}
         <HistorySection data={data} />
       </main>
+
       <Footer />
     </div>
   );
