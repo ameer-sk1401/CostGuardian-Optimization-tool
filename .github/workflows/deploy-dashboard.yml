@@ -1,11 +1,3 @@
-# ========================================
-# GitHub Actions: Dashboard Deployment to Netlify
-# ========================================
-# File: .github/workflows/deploy-dashboard.yml
-# Repository: cost-guardian-dashboard
-# Triggers: Push to main or pull request
-# ========================================
-
 name: Deploy Dashboard to Netlify
 
 on:
