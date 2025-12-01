@@ -1,8 +1,8 @@
 # ========================================
 # Netlify Configuration
 # ========================================
-# This file tells Netlify where your code is
-# and how to build it
+# Repository: CostGuardian-Optimization-tool
+# Frontend location: frontend/
 # ========================================
 
 [build]
@@ -10,28 +10,21 @@
   base = "frontend"
   
   # Build command
-  command = "npm run build"
+  command = "npm install && npm run build"
   
-  # Publish directory - where the built files are
-  publish = "frontend/.next"
+  # Publish directory - where the built files are (relative to base)
+  publish = ".next"
 
 [build.environment]
   # Node version
   NODE_VERSION = "18"
+  NPM_FLAGS = "--legacy-peer-deps"
 
 # ========================================
-# Redirects and Headers (Optional)
+# Redirects for Next.js
 # ========================================
 
-# Redirect all requests to index.html for client-side routing
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-# ========================================
-# Functions (if using Netlify Functions)
-# ========================================
-
-[functions]
-  directory = "frontend/netlify/functions"
