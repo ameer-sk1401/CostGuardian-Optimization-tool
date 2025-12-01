@@ -1,20 +1,13 @@
 {
   "user_info": {
-    "github_username": ${{secrets.USER_NAME}},
+    "github_username": ${{USER_NAME}},
+    "github_repo": "ameer-sk1401/CostGuardian-Optimization-tool",
     "aws_account_id": ${{AWS_ID}},
     "aws_region": "us-east-1",
     "project_name": "CostGuardian"
   },
   "settings": {
     "data_refresh_interval": 300000,
-    "theme": "dark",
-    "timezone": "UTC",
-    "currency": "USD"
-  },
-  "display": {
-    "show_account_id": true,
-    "show_region": true,
-    "show_github_link": true,
-    "decimal_places": 2
+    "theme": "dark"
   }
 }
