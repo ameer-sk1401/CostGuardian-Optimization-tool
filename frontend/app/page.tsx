@@ -21,7 +21,7 @@ export default function Home() {
 
         // Step 1: Load config.json (local file)
         console.log("📥 Loading config.json...");
-        const configResponse = await fetch("/config.json");
+        const configResponse = await fetch("/frontned/public/config.json");
 
         if (!configResponse.ok) {
           throw new Error(
@@ -33,7 +33,7 @@ export default function Home() {
         console.log("✅ Config loaded:", config);
 
         // Step 2: Load data.json from GitHub
-        const dataUrl = `https://raw.githubusercontent.com/${config.user_info.github_repo}/main/public/data.json`;
+        const dataUrl = `https://raw.githubusercontent.com/${config.user_info.github_repo}/main/frontend/public/data.json`;
         console.log("📥 Loading data from:", dataUrl);
 
         const dataResponse = await fetch(dataUrl, {
