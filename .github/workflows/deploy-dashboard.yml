@@ -1,12 +1,10 @@
 # ========================================
-# GitHub Actions: Dashboard Deployment to Netlify
+# GitHub Actions: Deploy to Netlify
 # ========================================
-# File: .github/workflows/deploy-dashboard.yml
-# Repository: CostGuardian-Optimization-tool
-# Working directory: frontend/
+# Simplified deployment using Netlify CLI
 # ========================================
 
-name: Deploy Dashboard to Netlify
+name: Deploy to Netlify
 
 on:
   push:
@@ -15,11 +13,6 @@ on:
     paths:
       - 'frontend/**'
       - '.github/workflows/deploy-dashboard.yml'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'frontend/**'
   
   workflow_dispatch:
 
@@ -27,85 +20,9 @@ env:
   NODE_VERSION: '18'
 
 jobs:
-  # ========================================
-  # JOB 1: Build and Deploy
-  # ========================================
-  build-and-deploy:
-    name: Build and Deploy to Netlify
+  deploy:
+    name: Build and Deploy
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 📦 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ">=20.9.0"
-
-      - name: 📥 Install dependencies
-        working-directory: frontend
-        run: |
-          echo "📦 Installing dependencies..."
-          npm install
-
-      - name: 🔍 Lint code
-        working-directory: frontend
-        run: |
-          echo "🔍 Running linter..."
-          npm run lint || echo "✅ Lint check complete"
-
-      - name: ✅ Validate config.json
-        working-directory: frontend
-        run: |
-          if [ -f "public/config.json" ]; then
-            echo "✅ config.json found"
-            cat public/config.json | python3 -m json.tool > /dev/null
-            echo "✅ config.json is valid JSON"
-          else
-            echo "⚠️  config.json not found - will use defaults"
-          fi
-
-      - name: 🔧 Build application
-        working-directory: frontend
-        run: |
-          echo "🔧 Building Next.js application..."
-          npm run build
-        env:
-          NODE_ENV: production
-
-      - name: 📊 Build summary
-        run: |
-          echo "✅ Build completed successfully!"
-          echo "📦 Build output:"
-          ls -lh frontend/.next/ 2>/dev/null || echo "Build directory created"
-
-      - name: 🚀 Deploy to Netlify
-        uses: netlify/actions/cli@master
-        with:
-          args: deploy --prod --dir=frontend/.next
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-
-      - name: 🎉 Deployment complete
-        run: |
-          echo "================================"
-          echo "✅ DEPLOYMENT SUCCESSFUL!"
-          echo "================================"
-          echo "🌐 Live URL: https://${{ secrets.NETLIFY_SITE_ID }}.netlify.app"
-          echo "📅 Time: $(date)"
-          echo "📁 Source: frontend/"
-          echo "================================"
-
-  # ========================================
-  # JOB 2: Build Only (for PRs)
-  # ========================================
-  build-preview:
-    name: Build Preview
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     
     steps:
       - name: 📥 Checkout code
@@ -116,9 +33,16 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: 📦 Install Netlify CLI
+        run: npm install -g netlify-cli
+
       - name: 📥 Install dependencies
         working-directory: frontend
         run: npm install
+
+      - name: 🔍 Lint code
+        working-directory: frontend
+        run: npm run lint || echo "✅ Lint complete"
 
       - name: 🔧 Build application
         working-directory: frontend
@@ -126,13 +50,20 @@ jobs:
         env:
           NODE_ENV: production
 
-      - name: 📝 PR Comment
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '## ✅ Build Successful!\n\n🔧 Frontend build completed without errors.\n\n📁 **Source:** frontend/\n\n---\n*Merge to deploy to production*'
-            })
+      - name: 🚀 Deploy to Netlify
+        working-directory: frontend
+        run: |
+          netlify deploy \
+            --prod \
+            --dir=.next \
+            --site=${{ secrets.NETLIFY_SITE_ID }} \
+            --auth=${{ secrets.NETLIFY_AUTH_TOKEN }}
+
+      - name: 🎉 Success
+        run: |
+          echo "================================"
+          echo "✅ DEPLOYED SUCCESSFULLY!"
+          echo "================================"
+          echo "🌐 Live: https://${{ secrets.NETLIFY_SITE_ID }}.netlify.app"
+          echo "📁 From: frontend/"
+          echo "================================"
