@@ -3,7 +3,6 @@
 # ========================================
 # File: .github/workflows/deploy-dashboard.yml
 # Repository: CostGuardian-Optimization-tool
-# Triggers: Push to main or pull request
 # Working directory: frontend/
 # ========================================
 
@@ -26,7 +25,6 @@ on:
 
 env:
   NODE_VERSION: '18'
-  WORKING_DIR: './frontend'
 
 jobs:
   # ========================================
@@ -45,22 +43,22 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: '${{ env.WORKING_DIR }}/package-lock.json'
+          cache-dependency-path: 'frontend/package-lock.json'
 
       - name: 📥 Install dependencies
-        working-directory: ${{ env.WORKING_DIR }}
+        working-directory: frontend
         run: |
           echo "📦 Installing dependencies..."
           npm ci
 
       - name: 🔍 Lint code
-        working-directory: ${{ env.WORKING_DIR }}
+        working-directory: frontend
         run: |
           echo "🔍 Running linter..."
           npm run lint || echo "Lint check complete"
 
       - name: ✅ Validate config.json
-        working-directory: ${{ env.WORKING_DIR }}
+        working-directory: frontend
         run: |
           if [ -f "public/config.json" ]; then
             echo "✅ config.json found"
@@ -71,7 +69,7 @@ jobs:
           fi
 
       - name: 🔧 Build application
-        working-directory: ${{ env.WORKING_DIR }}
+        working-directory: frontend
         run: |
           echo "🔧 Building Next.js application..."
           npm run build
@@ -82,7 +80,7 @@ jobs:
         run: |
           echo "✅ Build completed successfully!"
           echo "📦 Build artifact:"
-          ls -lh ${{ env.WORKING_DIR }}/.next/ 2>/dev/null || ls -lh ${{ env.WORKING_DIR }}/out/ 2>/dev/null || echo "Build directory found"
+          ls -lh frontend/.next/ 2>/dev/null || ls -lh frontend/out/ 2>/dev/null || echo "Build directory found"
 
   # ========================================
   # JOB 2: Deploy to Netlify (Production)
@@ -102,14 +100,14 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: '${{ env.WORKING_DIR }}/package-lock.json'
+          cache-dependency-path: 'frontend/package-lock.json'
 
       - name: 📥 Install dependencies
-        working-directory: ${{ env.WORKING_DIR }}
+        working-directory: frontend
         run: npm ci
 
       - name: 🔧 Build for production
-        working-directory: ${{ env.WORKING_DIR }}
+        working-directory: frontend
         run: npm run build
         env:
           NODE_ENV: production
@@ -117,35 +115,20 @@ jobs:
       - name: 🚀 Deploy to Netlify
         uses: netlify/actions/cli@master
         with:
-          args: deploy --prod --dir=${{ env.WORKING_DIR }}/.next
+          args: deploy --prod --dir=frontend/.next
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
 
-      - name: 📝 Get deploy URL
+      - name: 📝 Deployment complete
         run: |
           echo "================================"
           echo "🎉 DEPLOYMENT SUCCESSFUL!"
           echo "================================"
           echo "🌐 Production URL: https://${{ secrets.NETLIFY_SITE_ID }}.netlify.app"
           echo "📅 Deployed at: $(date)"
-          echo "📁 Deployed from: ${{ env.WORKING_DIR }}"
+          echo "📁 Source: frontend/"
           echo "================================"
-
-      - name: ✅ Verify deployment
-        run: |
-          SITE_URL="https://${{ secrets.NETLIFY_SITE_ID }}.netlify.app"
-          echo "🔍 Checking site availability..."
-          
-          sleep 10
-          
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $SITE_URL)
-          
-          if [ $HTTP_CODE -eq 200 ]; then
-            echo "✅ Site is live and accessible!"
-          else
-            echo "⚠️  Site returned HTTP $HTTP_CODE"
-          fi
 
   # ========================================
   # JOB 3: Deploy Preview (for PRs)
@@ -165,14 +148,14 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: '${{ env.WORKING_DIR }}/package-lock.json'
+          cache-dependency-path: 'frontend/package-lock.json'
 
       - name: 📥 Install dependencies
-        working-directory: ${{ env.WORKING_DIR }}
+        working-directory: frontend
         run: npm ci
 
       - name: 🔧 Build for preview
-        working-directory: ${{ env.WORKING_DIR }}
+        working-directory: frontend
         run: npm run build
         env:
           NODE_ENV: production
@@ -180,7 +163,7 @@ jobs:
       - name: 🚀 Deploy preview to Netlify
         uses: netlify/actions/cli@master
         with:
-          args: deploy --dir=${{ env.WORKING_DIR }}/.next
+          args: deploy --dir=frontend/.next
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -189,31 +172,9 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const netlifyUrl = 'https://${{ secrets.NETLIFY_SITE_ID }}.netlify.app';
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## 🚀 Preview Deployment\n\n✅ Your changes have been deployed to Netlify!\n\n🌐 **Preview URL:** ${netlifyUrl}\n\n📁 **Deployed from:** frontend/\n\n---\n*This preview will be updated with new commits*`
+              body: '## 🚀 Preview Deployment\n\n✅ Your changes have been deployed!\n\n🌐 **Preview URL:** Check Netlify dashboard\n\n📁 **Source:** frontend/\n\n---\n*This preview updates with new commits*'
             })
-
-  # ========================================
-  # JOB 4: Notify on Success
-  # ========================================
-  notify:
-    name: Notify Success
-    needs: [deploy-production]
-    runs-on: ubuntu-latest
-    if: success()
-    
-    steps:
-      - name: 🎉 Success message
-        run: |
-          echo "================================"
-          echo "✅ ALL JOBS COMPLETED!"
-          echo "================================"
-          echo "🔧 Build: ✅ Success"
-          echo "🚀 Deploy: ✅ Success"
-          echo "🌐 Dashboard: Live on Netlify!"
-          echo "📁 Source: frontend/"
-          echo "================================"
