@@ -21,7 +21,7 @@ export default function Home() {
 
         // Step 1: Load config.json (local file)
         console.log("📥 Loading config.json...");
-        const configResponse = await fetch("/frontned/public/config.json");
+        const configResponse = await fetch("/config.json");
 
         if (!configResponse.ok) {
           throw new Error(
