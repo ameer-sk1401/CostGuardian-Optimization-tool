@@ -1,18 +1,45 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  DollarSign,
-  Server,
-  Zap,
-  TrendingDown,
-  Activity,
-  Database,
-} from "lucide-react";
+import { DollarSign, Server, TrendingDown, Activity } from "lucide-react";
 import LogDownloader from "@/components/log-downloader";
 
+// Define types
+interface Overview {
+  total_resources: number;
+  resources_deleted: number;
+  monthly_savings: number;
+  annual_savings: number;
+  active_resources: number;
+  idle_resources: number;
+}
+
+interface Breakdown {
+  [key: string]: {
+    count: number;
+    monthly_savings?: number;
+  };
+}
+
+interface DeletedResource {
+  resource_type: string;
+  resource_id: string;
+  deleted_at: string;
+  monthly_savings: number;
+}
+
+interface DashboardData {
+  overview: Overview;
+  breakdown: Breakdown;
+  deleted_resources: DeletedResource[];
+  config: {
+    aws_account_id: string;
+    aws_region: string;
+  };
+}
+
 export default function TerminalDashboard() {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -33,7 +60,7 @@ export default function TerminalDashboard() {
           headers: { Accept: "application/json" },
         });
 
-        const jsonData = await dataResponse.json();
+        const jsonData = await jsonResponse.json();
         setData({ ...jsonData, config: config.user_info });
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -47,8 +74,6 @@ export default function TerminalDashboard() {
             idle_resources: 0,
           },
           breakdown: {},
-          activity: [],
-          current_resources: [],
           deleted_resources: [],
           config: {
             aws_account_id: "941431936794",
@@ -79,7 +104,14 @@ export default function TerminalDashboard() {
     );
   }
 
-  const overview = data?.overview || {};
+  const overview = data?.overview || {
+    total_resources: 0,
+    resources_deleted: 0,
+    monthly_savings: 0,
+    annual_savings: 0,
+    active_resources: 0,
+    idle_resources: 0,
+  };
 
   return (
     <div className="min-h-screen p-4 md:p-8 bg-terminal-dark">
@@ -181,8 +213,8 @@ export default function TerminalDashboard() {
         </div>
       </div>
 
-      {/* Log Downloader Section - NEW! */}
-      <LogDownloader data={data} />
+      {/* Log Downloader Section */}
+      {data && <LogDownloader data={data} />}
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -252,7 +284,9 @@ export default function TerminalDashboard() {
                       key={type}
                       className="flex justify-between items-center"
                     >
-                      <span className="text-terminal-cyan">"{type}":</span>
+                      <span className="text-terminal-cyan">
+                        &quot;{type}&quot;:
+                      </span>
                       <span className="text-terminal-green">{info.count}</span>
                     </div>
                   ))
