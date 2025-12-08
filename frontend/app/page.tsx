@@ -60,7 +60,7 @@ export default function TerminalDashboard() {
           headers: { Accept: "application/json" },
         });
 
-        const jsonData = await jsonResponse.json();
+        const jsonData = await dataResponse.json();
         setData({ ...jsonData, config: config.user_info });
       } catch (err) {
         console.error("Error fetching data:", err);
