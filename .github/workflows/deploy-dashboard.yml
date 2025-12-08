@@ -1,0 +1,94 @@
+name: Deploy to Netlify
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "frontend/**"
+      - ".github/workflows/deploy-dashboard.yml"
+
+  workflow_run:
+    workflows: ["Validate Dashboard Data"]
+    types:
+      - completed
+    branches:
+      - main
+
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    # Only run if validation passed or on manual/push trigger
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 📥 Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: 🔍 Lint code
+        working-directory: frontend
+        run: npm run lint || echo "⚠️  Lint warnings (non-blocking)"
+        continue-on-error: true
+
+      - name: 🔧 Build application
+        working-directory: frontend
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: 📦 Install Netlify CLI
+        run: npm install -g netlify-cli@latest
+
+      - name: 🚀 Deploy to Netlify
+        run: |
+          echo "🚀 Deploying to Netlify..."
+          echo "📁 Using netlify.toml configuration"
+          netlify deploy --prod
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+
+      - name: 🎉 Deployment successful
+        if: success()
+        run: |
+          echo "================================"
+          echo "✅ DEPLOYED SUCCESSFULLY!"
+          echo "================================"
+          echo "🌐 Your dashboard is now live!"
+          echo "📊 CostGuardian Terminal Dashboard"
+          echo "================================"
+
+      - name: ❌ Deployment failed
+        if: failure()
+        run: |
+          echo "================================"
+          echo "❌ DEPLOYMENT FAILED"
+          echo "================================"
+          echo "Check the logs above for errors"
+          echo "Common issues:"
+          echo "  • Build errors in Next.js"
+          echo "  • Missing Netlify secrets"
+          echo "  • Invalid NETLIFY_SITE_ID"
+          echo "  • Check netlify.toml configuration"
+          echo "================================"

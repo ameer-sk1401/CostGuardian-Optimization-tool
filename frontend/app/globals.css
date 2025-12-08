@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #0a0e1a;
+    color: #e0e0e0;
+    font-family: monospace;
+    background-image: 
+      linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+}
+
+@layer components {
+  .terminal-window {
+    background-color: #1a1f2e;
+    border: 1px solid #00ff88;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+  }
+
+  .terminal-header {
+    background-color: #0a0e1a;
+    border-bottom: 1px solid #00ff88;
+    padding: 0.75rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .terminal-button {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 9999px;
+  }
+
+  .terminal-button-red { background-color: #ff5555; }
+  .terminal-button-amber { background-color: #ffd700; }
+  .terminal-button-green { background-color: #00ff88; }
+
+  .terminal-content {
+    padding: 1rem;
+    font-family: monospace;
+    font-size: 0.875rem;
+  }
+
+  .terminal-card {
+    background-color: #1a1f2e;
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.1);
+  }
+
+  .terminal-card:hover {
+    border-color: rgba(100, 255, 218, 0.5);
+    box-shadow: 0 0 15px rgba(100, 255, 218, 0.2);
+  }
+
+  .cursor-blink {
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+
+  .glow-green {
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+  }
+
+  .glow-cyan {
+    text-shadow: 0 0 10px rgba(100, 255, 218, 0.8);
+  }
+
+  .ascii-art {
+    color: #00ff88;
+    font-family: monospace;
+    font-size: 0.75rem;
+    line-height: 1;
+    white-space: pre;
+  }
+
+  .loading-dots::after {
+    content: '';
+    animation: dots 1.5s steps(4, end) infinite;
+  }
+
+  @keyframes dots {
+    0%, 20% { content: ''; }
+    40% { content: '.'; }
+    60% { content: '..'; }
+    80%, 100% { content: '...'; }
+  }
+
+  .stat-card {
+    background-color: #1a1f2e;
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.1);
+  }
+
+  .stat-card::before {
+    content: '$';
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 2.5rem;
+    color: rgba(0, 255, 136, 0.1);
+    font-weight: 700;
+  }
+
+  .command-line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: monospace;
+  }
+
+  .command-line::before {
+    content: '$';
+    color: #00ff88;
+    font-weight: 700;
+  }
+}

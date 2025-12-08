@@ -1,0 +1,195 @@
+name: Validate Dashboard Data
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "frontend/public/data.json"
+
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate data.json
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: ✅ Validate JSON syntax
+        run: |
+          echo "🔍 Checking JSON syntax..."
+          python3 -m json.tool frontend/public/data.json > /dev/null
+          echo "✅ JSON syntax is valid!"
+
+      - name: 📊 Validate data structure
+        run: |
+          cat > validate.py << 'EOF'
+          import json
+          import sys
+          from datetime import datetime
+
+          print("="*60)
+          print("🔍 VALIDATING DATA.JSON STRUCTURE")
+          print("="*60)
+
+          with open('frontend/public/data.json', 'r') as f:
+              data = json.load(f)
+
+          errors = []
+          warnings = []
+
+          # Check required top-level keys
+          required_keys = ['metadata', 'overview', 'breakdown', 'activity', 'current_resources', 'deleted_resources']
+
+          print("\n📋 Checking required fields...")
+          for key in required_keys:
+              if key not in data:
+                  errors.append(f"Missing required key: {key}")
+                  print(f"   ❌ Missing: {key}")
+              else:
+                  print(f"   ✅ Found: {key}")
+
+          # Validate metadata
+          if 'metadata' in data:
+              if 'last_updated' not in data['metadata']:
+                  errors.append("Missing metadata.last_updated")
+              if 'version' not in data['metadata']:
+                  warnings.append("Missing metadata.version")
+
+          # Validate overview
+          if 'overview' in data:
+              overview_keys = ['total_resources', 'resources_deleted', 'monthly_savings', 'annual_savings']
+              for key in overview_keys:
+                  if key not in data['overview']:
+                      errors.append(f"Missing overview.{key}")
+                  elif not isinstance(data['overview'][key], (int, float)):
+                      errors.append(f"Invalid type for overview.{key}")
+
+          # Validate savings are non-negative
+          if 'overview' in data:
+              if data['overview'].get('monthly_savings', 0) < 0:
+                  errors.append(f"Invalid monthly_savings: {data['overview']['monthly_savings']}")
+              
+              if data['overview'].get('annual_savings', 0) < 0:
+                  errors.append(f"Invalid annual_savings: {data['overview']['annual_savings']}")
+
+          # Validate lists are actually lists
+          if 'activity' in data and not isinstance(data['activity'], list):
+              errors.append("activity must be a list")
+
+          if 'current_resources' in data and not isinstance(data['current_resources'], list):
+              errors.append("current_resources must be a list")
+
+          if 'deleted_resources' in data and not isinstance(data['deleted_resources'], list):
+              errors.append("deleted_resources must be a list")
+
+          # Print results
+          print("\n" + "="*60)
+          print("📊 VALIDATION RESULTS")
+          print("="*60)
+
+          if errors:
+              print("\n❌ ERRORS FOUND:")
+              for error in errors:
+                  print(f"   • {error}")
+              sys.exit(1)
+
+          if warnings:
+              print("\n⚠️  WARNINGS:")
+              for warning in warnings:
+                  print(f"   • {warning}")
+
+          print("\n✅ All critical validations passed!")
+
+          # Print summary
+          print("\n" + "="*60)
+          print("📈 DATA SUMMARY")
+          print("="*60)
+          print(f"Total Resources:    {data['overview'].get('total_resources', 'N/A')}")
+          print(f"Resources Deleted:  {data['overview'].get('resources_deleted', 'N/A')}")
+          print(f"Monthly Savings:    ${data['overview'].get('monthly_savings', 0):.2f}")
+          print(f"Annual Savings:     ${data['overview'].get('annual_savings', 0):.2f}")
+          print(f"Last Updated:       {data['metadata'].get('last_updated', 'N/A')}")
+          print("="*60)
+          EOF
+
+          python3 validate.py
+
+      - name: 📈 Generate detailed report
+        if: success()
+        run: |
+          cat > report.py << 'EOF'
+          import json
+          from datetime import datetime
+
+          with open('frontend/public/data.json', 'r') as f:
+              data = json.load(f)
+
+          print("\n" + "="*60)
+          print("📊 COSTGUARDIAN DATA REPORT")
+          print("="*60)
+          print(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
+          print(f"Data Version: {data['metadata'].get('version', 'N/A')}")
+          print(f"Last Updated: {data['metadata'].get('last_updated', 'N/A')}")
+
+          print("\n💰 SAVINGS ANALYSIS")
+          print("-"*60)
+          monthly = data['overview'].get('monthly_savings', 0)
+          annual = data['overview'].get('annual_savings', 0)
+          print(f"Monthly Savings:  ${monthly:,.2f}")
+          print(f"Annual Savings:   ${annual:,.2f}")
+
+          if monthly > 0:
+              roi = (annual / 0.35) * 100  # $0.35/mo infrastructure cost
+              print(f"ROI:              {roi:,.0f}%")
+
+          print("\n📦 RESOURCE INVENTORY")
+          print("-"*60)
+          print(f"Total Resources:  {data['overview'].get('total_resources', 0)}")
+          print(f"Active Resources: {data['overview'].get('active_resources', 0)}")
+          print(f"Idle Resources:   {data['overview'].get('idle_resources', 0)}")
+          print(f"Deleted:          {data['overview'].get('resources_deleted', 0)}")
+
+          print("\n🗑️  SAVINGS BREAKDOWN")
+          print("-"*60)
+          if 'breakdown' in data:
+              for resource_type, info in sorted(data['breakdown'].items(), 
+                                               key=lambda x: x[1].get('monthly_savings', 0), 
+                                               reverse=True):
+                  savings = info.get('monthly_savings', 0)
+                  deleted = info.get('deleted', 0)
+                  print(f"{resource_type:20} ${savings:8.2f}/mo  ({deleted} deleted)")
+
+          print("\n📊 RECENT ACTIVITY")
+          print("-"*60)
+          if 'activity' in data and len(data['activity']) > 0:
+              recent = data['activity'][-5:]  # Last 5 activities
+              for item in recent:
+                  timestamp = item.get('timestamp', 'N/A')
+                  action = item.get('action', 'N/A')
+                  resource = item.get('resource_type', 'N/A')
+                  print(f"{timestamp}  |  {action}  |  {resource}")
+          else:
+              print("No recent activity")
+
+          print("\n" + "="*60)
+          print("✅ REPORT COMPLETE")
+          print("="*60)
+          EOF
+
+          python3 report.py
+
+      - name: 🎉 Success notification
+        if: success()
+        run: |
+          echo "✅ Data validation passed!"
+          echo "📊 Dashboard data is healthy and ready to use"
+          echo "🌐 Your dashboard will display this data"

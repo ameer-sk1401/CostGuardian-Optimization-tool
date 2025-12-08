@@ -1,0 +1,70 @@
+# Netlify Configuration for CostGuardian Terminal Dashboard
+# Next.js 14+ with App Router
+
+[build]
+  # Base directory (where package.json is)
+  base = "frontend"
+  
+  # Build command
+  command = "npm run build"
+  
+  # Publish directory (Next.js output)
+  publish = ".next"
+  
+  # Environment variables for build
+  [build.environment]
+    NODE_VERSION = "20"
+    NODE_ENV = "production"
+
+# Next.js Runtime (Essential for App Router with SSR)
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Headers for security and performance
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Security headers
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+    # Cache control for HTML
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+# Cache static assets aggressively
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache images
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Don't cache data.json (always fetch fresh)
+[[headers]]
+  for = "/data.json"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Cache config.json for 1 hour
+[[headers]]
+  for = "/config.json"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+# Functions configuration (if needed later)
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Dev server settings (for netlify dev)
+[dev]
+  command = "npm run dev"
+  port = 3000
+  targetPort = 3000
+  autoLaunch = true
