@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "frontend/**"
+      - "netlify.toml"
       - ".github/workflows/deploy-dashboard.yml"
 
   workflow_run:
@@ -39,12 +40,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
 
       - name: 📥 Install dependencies
         working-directory: frontend
-        run: npm ci
+        run: npm ci || npm install
 
       - name: 🔍 Lint code
         working-directory: frontend
@@ -63,8 +62,8 @@ jobs:
       - name: 🚀 Deploy to Netlify
         run: |
           echo "🚀 Deploying to Netlify..."
-          echo "📁 Using netlify.toml configuration"
-          netlify deploy --prod
+          cd frontend
+          netlify deploy --prod --dir=.next
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -90,5 +89,5 @@ jobs:
           echo "  • Build errors in Next.js"
           echo "  • Missing Netlify secrets"
           echo "  • Invalid NETLIFY_SITE_ID"
-          echo "  • Check netlify.toml configuration"
+          echo "  • Missing dependencies"
           echo "================================"
