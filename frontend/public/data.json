@@ -1,18 +1,37 @@
 {
   "metadata": {
-    "last_updated": "2025-12-08T08:00:00Z",
-    "version": "1.0.0"
+    "last_updated": "2025-12-08T10:39:58.741684Z",
+    "version": "1.0",
+    "total_log_entries": 429,
+    "unique_resources": 1
   },
   "overview": {
-    "total_resources": 0,
+    "total_resources": 1,
     "resources_deleted": 0,
-    "monthly_savings": 0,
-    "annual_savings": 0,
+    "idle_resources": 0,
     "active_resources": 0,
-    "idle_resources": 0
+    "monthly_savings": 0.0,
+    "annual_savings": 0.0
   },
-  "breakdown": {},
+  "breakdown": {
+    "VPC": {
+      "count": 1,
+      "deleted": 0,
+      "idle": 0,
+      "active": 0,
+      "monthly_savings": 0.0
+    }
+  },
   "activity": [],
-  "current_resources": [],
+  "current_resources": [
+    {
+      "resource_id": null,
+      "resource_type": "VPC",
+      "status": "ACTIVE",
+      "monthly_cost": 0.0,
+      "last_checked": 1765190310.0,
+      "region": "us-east-1"
+    }
+  ],
   "deleted_resources": []
 }
