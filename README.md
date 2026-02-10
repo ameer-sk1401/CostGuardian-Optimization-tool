@@ -1,1 +1,1 @@
-This project is done as a part of my final semester termination project, you can find detailed documentation here
+This project is done as a part of my final semester termination project, you can find detailed documentation [here](https://github.com/ameer-sk1401/CostGuardian-Optimization-tool/blob/main/B01031061_CostGuardian_report.pdf)
